@@ -1,0 +1,20 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+test-pg.js
+test-pg2.js
+test-solution.js
+test-solution2.js

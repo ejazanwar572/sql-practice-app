@@ -6,13 +6,15 @@ export interface Question {
   schema: string;
   setupSql: string;
   solutionSql: string;
+  hints?: string[];
+  company?: string;
 }
 
 export const questions: Question[] = [
   {
     id: 'q1',
     difficulty: 'Easy',
-    title: 'Compute cumulative revenue per day',
+    title: 'Cumulative Revenue',
     description: 'Write a query to calculate the daily revenue and the running cumulative revenue per day from the `sales` table.',
     schema: `TABLE sales (
   order_date DATE,
@@ -37,12 +39,18 @@ export const questions: Question[] = [
   SUM(SUM(revenue)) OVER (ORDER BY order_date) AS cumulative_revenue 
 FROM sales 
 GROUP BY order_date 
-ORDER BY order_date;`
+ORDER BY order_date;`,
+    company: 'Amazon',
+    hints: [
+      'You will need to use an aggregate function combined with a window function.',
+      'Think about how you can SUM() the daily SUM() of revenue.',
+      'The OVER() clause should order by the order_date to compute the running total.'
+    ]
   },
   {
     id: 'q2',
     difficulty: 'Easy',
-    title: 'Detect and delete duplicate records',
+    title: 'Finding Duplicates',
     description: 'Find duplicate records in a transactional table and safely delete the extras, keeping only the first one based on ID.',
     schema: `TABLE transactions (
   id INTEGER PRIMARY KEY,
@@ -71,12 +79,18 @@ ORDER BY order_date;`
 )
 DELETE FROM transactions 
 WHERE id IN (SELECT id FROM ranked WHERE rn > 1);
--- To verify, run: SELECT * FROM transactions ORDER BY id;`
+-- To verify, run: SELECT * FROM transactions ORDER BY id;`,
+    company: 'Google',
+    hints: [
+      'Since you need to keep the first record based on ID, think about assigning a row number to duplicates.',
+      'Use the ROW_NUMBER() window function partitioned by the duplicate-defining columns.',
+      'Delete the rows where the assigned row number is greater than 1.'
+    ]
   },
   {
     id: 'q3',
     difficulty: 'Easy',
-    title: 'Rank products by sales per year',
+    title: 'Product Sales Rank',
     description: 'Rank products by sales per year, resetting the rank each year.',
     schema: `TABLE product_sales (
   product_id INTEGER,
@@ -109,12 +123,18 @@ WHERE id IN (SELECT id FROM ranked WHERE rn > 1);
 SELECT 
   *, 
   RANK() OVER (PARTITION BY sale_year ORDER BY total_sales DESC) AS sales_rank
-FROM yearly_sales;`
+FROM yearly_sales;`,
+    company: 'Meta',
+    hints: [
+      'First, you need to aggregate the total sales for each product per year. Consider using a CTE or subquery.',
+      'Extract the year from the sale_date using EXTRACT(YEAR FROM ...).',
+      'Finally, use the RANK() window function partitioned by the year to rank the aggregated sales.'
+    ]
   },
   {
     id: 'q4',
     difficulty: 'Easy',
-    title: 'First and last transaction on same day',
+    title: 'Same Day Transactions',
     description: 'Identify customers whose first and last transaction occurred on the exact same day.',
     schema: `TABLE customer_txns (
   customer_id INTEGER,
@@ -136,6 +156,12 @@ FROM yearly_sales;`
     solutionSql: `SELECT customer_id
 FROM customer_txns
 GROUP BY customer_id
-HAVING DATE(MIN(transaction_date)) = DATE(MAX(transaction_date));`
+HAVING DATE(MIN(transaction_date)) = DATE(MAX(transaction_date));`,
+    company: 'Uber',
+    hints: [
+      'You need to evaluate each customer as a group, so GROUP BY customer_id is a good start.',
+      'Think about how you can compare the very first and very last transaction for a customer.',
+      'The HAVING clause lets you filter groups where the DATE() of the MIN transaction matches the MAX transaction.'
+    ]
   }
 ];

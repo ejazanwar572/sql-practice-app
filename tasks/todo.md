@@ -20,10 +20,10 @@
 - [x] Build the Question Display Component (Schema visualization, question text).
 - [x] Build the Code Editor / Answer Component (Syntax highlighting for SQL).
 - [x] Integrate in-browser database engine (PGlite) to execute user queries.
-- [ ] Implement the Evaluation Engine (comparing user output with expected output or displaying the solution).
+- [x] Implement the Evaluation Engine (comparing user output with expected output or displaying the solution).
 
 ## Phase 5: Polish & Premium Design
-- [ ] Apply premium aesthetic refinements (animations, gradients, glassmorphism).
+- [x] Apply premium aesthetic refinements (animations, gradients, glassmorphism).
 - [ ] Ensure mobile responsiveness and accessibility.
 - [ ] Add SEO tags if applicable (though likely a private/internal tool).
 

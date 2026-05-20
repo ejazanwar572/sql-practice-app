@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['@electric-sql/pglite']
+  },
+  server: {
+    host: '127.0.0.1'
   }
 })

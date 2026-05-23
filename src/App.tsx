@@ -597,6 +597,40 @@ function App() {
               </div>
             </div>
 
+            <div className="glass rounded-xl p-6">
+              <h2 className="text-sm font-medium text-emerald-400 uppercase tracking-wider mb-4">Expected Output</h2>
+              {expectedOutput && expectedOutput.length > 0 ? (
+                <div className="bg-gray-950/80 rounded-lg border border-gray-800 overflow-hidden shadow-inner p-4">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-gray-900 border-b border-gray-800">
+                          {Object.keys(expectedOutput[0]).map(key => (
+                            <th key={key} className="px-3 py-2 text-gray-400 font-medium uppercase whitespace-nowrap">
+                              {key}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800">
+                        {expectedOutput.map((row, i) => (
+                          <tr key={i} className="hover:bg-gray-800/50">
+                            {Object.values(row).map((val: any, j) => (
+                              <td key={j} className="px-3 py-2 text-gray-300 font-mono">
+                                {formatValue(val)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-xs font-mono">Loading expected output...</div>
+              )}
+            </div>
+
             {question.hints && question.hints.length > 0 && (
               <div className="glass rounded-xl p-6">
                 <h4 className="text-sm font-medium text-purple-400 uppercase tracking-wider mb-3">Need a hint?</h4>

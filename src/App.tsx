@@ -613,7 +613,7 @@ function App() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800">
-                        {expectedOutput.map((row, i) => (
+                        {expectedOutput.slice(0, 5).map((row, i) => (
                           <tr key={i} className="hover:bg-gray-800/50">
                             {Object.values(row).map((val: any, j) => (
                               <td key={j} className="px-3 py-2 text-gray-300 font-mono">
@@ -625,6 +625,11 @@ function App() {
                       </tbody>
                     </table>
                   </div>
+                  {expectedOutput.length > 5 && (
+                    <div className="text-[10px] text-gray-500 mt-2 text-center font-mono border-t border-gray-800/50 pt-2">
+                      Showing top 5 of {expectedOutput.length} rows
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-gray-500 text-xs font-mono">Loading expected output...</div>

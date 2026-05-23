@@ -71,7 +71,10 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
           placeholder="-- Write your SQL query here..."
           extensions={[
             sql({ dialect: PostgreSQL, schema: schemaForAutocomplete, upperCaseKeywords: true }),
-            Prec.highest(keymap.of([{ key: "Tab", run: acceptCompletion }]))
+            Prec.highest(keymap.of([
+              { key: "Tab", run: acceptCompletion },
+              { key: "Mod-Enter", run: () => { runQuery(); return true; } }
+            ]))
           ]}
           onChange={(value) => setQuery(value)}
           className="text-base"

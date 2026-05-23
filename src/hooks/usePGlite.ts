@@ -136,8 +136,8 @@ export function usePGlite(question: QuestionData) {
       }
       setQueryResult(userRows);
 
-      // Compare exact JSON results
-      const isMatch = JSON.stringify(userRows) === JSON.stringify(expectedOutput);
+      // Compare semantic result sets robustly
+      const isMatch = compareResultSets(userRows, expectedOutput);
       setIsCorrect(isMatch);
       setIsLoading(false);
       return { isCorrect: isMatch, timeMs, rows: userRows };
@@ -164,4 +164,55 @@ export function usePGlite(question: QuestionData) {
     runQuery,
     resetDB: () => initDB(question)
   };
+}
+
+function compareResultSets(a: any[] | null, b: any[] | null): boolean {
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  
+  for (let i = 0; i < a.length; i++) {
+    const rowA = a[i];
+    const rowB = b[i];
+    
+    const keysA = Object.keys(rowA);
+    const keysB = Object.keys(rowB);
+    
+    if (keysA.length !== keysB.length) return false;
+    
+    for (let j = 0; j < keysA.length; j++) {
+      const keyA = keysA[j];
+      const keyB = keysB[j];
+      
+      if (keyA.toLowerCase() !== keyB.toLowerCase()) return false;
+      
+      const valA = rowA[keyA];
+      const valB = rowB[keyB];
+      
+      if (!compareValues(valA, valB)) return false;
+    }
+  }
+  return true;
+}
+
+function compareValues(valA: any, valB: any): boolean {
+  if (valA === valB) return true;
+  if (valA === null || valA === undefined || valB === null || valB === undefined) {
+    return valA === valB;
+  }
+
+  const isDateA = valA instanceof Date || Object.prototype.toString.call(valA) === '[object Date]';
+  const isDateB = valB instanceof Date || Object.prototype.toString.call(valB) === '[object Date]';
+  if (isDateA || isDateB) {
+    const strA = isDateA ? (valA as Date).toISOString().split('T')[0] : String(valA);
+    const strB = isDateB ? (valB as Date).toISOString().split('T')[0] : String(valB);
+    return strA === strB;
+  }
+
+  const numA = Number(valA);
+  const numB = Number(valB);
+  if (!isNaN(numA) && !isNaN(numB) && typeof valA !== 'boolean' && typeof valB !== 'boolean') {
+    return Math.abs(numA - numB) < 1e-6;
+  }
+
+  return String(valA).trim() === String(valB).trim();
 }

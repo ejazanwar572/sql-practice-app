@@ -728,7 +728,7 @@ function App() {
                           return (
                             <div className="bg-orange-500/10 border-b border-orange-500/20 p-3 flex items-center text-orange-300 text-xs">
                               <AlertTriangle className="w-4 h-4 mr-2 text-orange-400 flex-shrink-0" />
-                              <span className="font-semibold text-orange-400 mr-2">Column Mismatch Detected</span>
+                              <span className="font-semibold text-orange-400 mr-2">Column Mismatch - One or more cols Missing</span>
                               {missingCols.length > 0 && (
                                 <span>- Missing columns: {missingCols.join(', ')}</span>
                               )}

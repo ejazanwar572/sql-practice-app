@@ -186,6 +186,15 @@ function App() {
     return true;
   });
 
+  const getDifficultyCount = (diff: 'ALL' | 'Easy' | 'Medium' | 'Hard') => {
+    return questions.filter(q => {
+      if (diff !== 'ALL' && q.difficulty !== diff) return false;
+      if (statusFilter === 'SOLVED' && !solvedQuestions.has(q.id)) return false;
+      if (statusFilter === 'UNSOLVED' && solvedQuestions.has(q.id)) return false;
+      return true;
+    }).length;
+  };
+
   const formatValue = (val: any) => {
     if (val === null || val === undefined) return <span className="text-gray-500 italic">NULL</span>;
     // Handle cross-context Date objects perfectly
@@ -420,10 +429,10 @@ function App() {
             </div>
           </div>
           <div className="flex gap-1.5">
-            <button onClick={() => setDifficultyFilter('ALL')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'ALL' ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-transparent border-transparent text-gray-500 hover:bg-gray-800/50'}`}>All</button>
-            <button onClick={() => setDifficultyFilter('Easy')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Easy' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-transparent border-transparent text-emerald-500/50 hover:bg-emerald-500/5'}`}>Easy</button>
-            <button onClick={() => setDifficultyFilter('Medium')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-transparent border-transparent text-yellow-500/50 hover:bg-yellow-500/5'}`}>Med</button>
-            <button onClick={() => setDifficultyFilter('Hard')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Hard' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-transparent border-transparent text-red-500/50 hover:bg-red-500/5'}`}>Hard</button>
+            <button onClick={() => setDifficultyFilter('ALL')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'ALL' ? 'bg-gray-800 border-gray-700 text-gray-200' : 'bg-transparent border-transparent text-gray-500 hover:bg-gray-800/50'}`}>All ({getDifficultyCount('ALL')})</button>
+            <button onClick={() => setDifficultyFilter('Easy')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Easy' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-transparent border-transparent text-emerald-500/50 hover:bg-emerald-500/5'}`}>Easy ({getDifficultyCount('Easy')})</button>
+            <button onClick={() => setDifficultyFilter('Medium')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Medium' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-transparent border-transparent text-yellow-500/50 hover:bg-yellow-500/5'}`}>Med ({getDifficultyCount('Medium')})</button>
+            <button onClick={() => setDifficultyFilter('Hard')} className={`flex-1 py-1.5 rounded text-[10px] border ${difficultyFilter === 'Hard' ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-transparent border-transparent text-red-500/50 hover:bg-red-500/5'}`}>Hard ({getDifficultyCount('Hard')})</button>
           </div>
         </div>
         

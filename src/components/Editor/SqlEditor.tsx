@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { sql, PostgreSQL } from '@codemirror/lang-sql';
 import { keymap } from '@codemirror/view';
-import { acceptCompletion } from '@codemirror/autocomplete';
-import { Prec } from '@codemirror/state';
+import { acceptCompletion, CompletionContext } from '@codemirror/autocomplete';
+import { Prec, EditorState } from '@codemirror/state';
 import { Trash2, BookOpen, Play } from 'lucide-react';
 
 interface SqlEditorProps {
@@ -33,6 +33,46 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [runQuery]);
+
+  const schemaAutocomplete = useMemo(() => {
+    return (context: CompletionContext) => {
+      const word = context.matchBefore(/[\w_]*/);
+      if (!word) return null;
+      if (word.from === word.to && !context.explicit) return null;
+
+      const isDotBefore = context.state.sliceDoc(word.from - 1, word.from) === '.';
+      if (isDotBefore) return null;
+
+      const options: any[] = [];
+      const columnsSet = new Set<string>();
+
+      Object.keys(schemaForAutocomplete).forEach(table => {
+        if (!options.some(opt => opt.label === table)) {
+          options.push({
+            label: table,
+            type: 'type',
+            boost: 2
+          });
+        }
+        schemaForAutocomplete[table].forEach(col => {
+          columnsSet.add(col);
+        });
+      });
+
+      columnsSet.forEach(col => {
+        options.push({
+          label: col,
+          type: 'property',
+          boost: 1
+        });
+      });
+
+      return {
+        from: word.from,
+        options
+      };
+    };
+  }, [schemaForAutocomplete]);
 
   return (
     <div className="glass rounded-xl overflow-hidden flex flex-col">
@@ -71,6 +111,7 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
           placeholder="-- Write your SQL query here..."
           extensions={[
             sql({ dialect: PostgreSQL, schema: schemaForAutocomplete, upperCaseKeywords: true }),
+            Prec.highest(EditorState.languageData.of(() => [{ autocomplete: schemaAutocomplete }])),
             Prec.highest(keymap.of([
               { key: "Tab", run: acceptCompletion },
               { key: "Mod-Enter", run: () => { runQuery(); return true; } }

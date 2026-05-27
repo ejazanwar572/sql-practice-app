@@ -1,47 +1,29 @@
-# SQL Practice App - Implementation Plan
+# Task: Resolve SQL Autocomplete Casing and Global Visibility
 
-## Phase 1: Planning & Requirements Gathering
-- [x] Define the scope of the application (Interactive SQL Runner).
-- [x] Identify the source of the SQL questions (Word doc to be provided).
-- [x] Decide on the tech stack (Vite + React TS, PGlite, CodeMirror, Tailwind).
-- [x] Finalize UI/UX design requirements (Dark mode, premium aesthetics).
+## Completed Tasks
+- [x] Analyze autocomplete mechanism in CodeMirror SQL language extension and PGlite database setup.
+- [x] Parse original table and column name casing from the `schema` metadata field of the current question.
+- [x] Populate `schemaForAutocomplete` with original-casing, lowercase, and uppercase versions of the table names and original casing of the columns.
+- [x] Implement a custom global autocomplete provider `schemaAutocomplete` in `SqlEditor.tsx` that triggers on global table and column completion.
+- [x] Prevent custom global completion from overriding default qualified (e.g. `table.column`) completion by returning `null` if a dot (`.`) is present immediately before the word.
+- [x] Verify autocomplete dropdown displays `DepartmentId` when typing `SELECT d` on Question 5 in the browser.
+- [x] Fix database schema sample rows rendering in `QuestionPanel.tsx` by implementing case-insensitive lookup on the raw rows returned by PGlite (resolving the issue where preserving column casing in the schema model resulted in `NULL` values in the UI due to PostgreSQL's lowercase key folding).
+- [x] Remove the database schema and individual table collapsible states (as requested, keeping the schema static).
+- [x] Implement a collapsible left column (Question & Schema panel) that folds to the left.
+- [x] Add a header toolbar toggle button with visual states (PanelLeftClose/PanelLeftOpen) and smooth hover triggers to collapse/expand the left panel.
+- [x] Add a solid vertical divider line (`lg:border-r lg:border-solid lg:border-gray-700/60`) to the right of the collapsible panel for clear visual separation.
+- [x] Refactor workspace container to a split-pane layout with a vertical border touching the header (going all the way to the top of the content container) and independent scrolling columns.
 
-## Phase 2: Foundation & Setup
-- [x] Initialize the web application repository.
-- [x] Set up the `tasks` directory for tracking progress and lessons.
-- [x] Configure Tailwind CSS.
-- [x] Create base layout and routing components.
-
-## Phase 3: Data Ingestion & State Management
-- [x] Implement data fetching/loading logic for the SQL questions.
-- [x] Design state management for tracking user progress.
-
-## Phase 4: Core Features Implementation
-- [x] Build the Question Display Component (Schema visualization, question text).
-- [x] Build the Code Editor / Answer Component (Syntax highlighting for SQL).
-- [x] Integrate in-browser database engine (PGlite) to execute user queries.
-- [x] Implement the Evaluation Engine (comparing user output with expected output or displaying the solution).
-
-## Phase 5: Polish & Premium Design
-- [x] Apply premium aesthetic refinements (animations, gradients, glassmorphism).
-- [x] Ensure mobile responsiveness and accessibility.
-- [ ] Add SEO tags if applicable (though likely a private/internal tool).
-
-## Phase 6: Testing & Review
-- [x] Run automated tests or manual verification of the core loops.
-- [x] Perform Code Review and Security Review using defined workflows.
-- [x] Verify data volumes across all questions (at least 20 records each).
-
-## Phase 7: Modular Refactoring (`modular-refactor` branch)
-- [x] Extract database service layer into PGlite client manager singleton.
-- [x] Implement custom hooks for component cleanups: `useLocalStorage` and `usePGlite`.
-- [x] Decouple view rendering into focused components: `Sidebar`, `SqlEditor`, `QuestionPanel`, and `ResultsPanel`.
-- [x] Move format helpers to a shared `src/utils/format.tsx`.
-- [x] Validate build correctness and verify zero compilation errors.
-
-## Review & Verification
-- **Expanded Datasets**: Overwrote `src/data/questions.ts` to expand mock database records for all four SQL questions (q1, q2, q3, q4) to 20+ records.
-- **Architectural Overhaul**: Successfully completed modular refactoring on the `modular-refactor` branch. The monolithic `App.tsx` has been decomposed into high-quality, reusable components and hooks, achieving a 5x reduction in main orchestrator file size.
-- **Build Status**: Verified compiling and building the production build successfully via `npm run build` with zero TypeScript errors.
-- **Review**: Conducted code review checks. All changes verified successfully.
-
+## Review & Validation
+- Verified via browser automation that:
+  - Autocomplete shows correctly cased `DepartmentId` at the top of suggestions when typing `d`.
+  - The query compiles and runs successfully.
+  - The results comparator correctly evaluates raw integers/decimals against expected formatted values.
+  - Database schema sample data table renders the actual values (e.g. `10`, `5000` for employee columns) instead of `NULL`s.
+  - Clicking the toolbar collapse button folds the entire left panel (Question, Database Schema, Expected Output) off-screen.
+  - When collapsed, the right SQL editor panel and results output expand dynamically to utilize the full screen width (`lg:col-span-12`).
+  - Clicking the button again expands the left panel back to its default layout width smoothly.
+  - The vertical divider line now touches the header border directly and goes all the way to the bottom of the viewport with no padding gaps.
+  - The header is split vertically, allowing the divider line to cut straight through the header to the very top edge of the window, perfectly aligning with the column separator below.
+  - The left and right panels scroll independently, preserving editor focus.
+  - All scrollbar tracks throughout the application (editor, schema panel, problem list) are dark/transparent with a low-profile gray thumb instead of a white background.

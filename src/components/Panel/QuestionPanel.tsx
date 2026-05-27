@@ -40,7 +40,7 @@ export const QuestionPanel: React.FC<QuestionPanelProps> = ({
   setHintsRevealed,
 }) => {
   return (
-    <div className="lg:col-span-5 space-y-6">
+    <div className="space-y-6">
       <div className="glass rounded-xl p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 flex items-center shadow-sm backdrop-blur-md rounded-bl-lg overflow-hidden border-b border-l border-white/10">
           {question.company && (
@@ -86,9 +86,18 @@ export const QuestionPanel: React.FC<QuestionPanelProps> = ({
                       <tbody className="divide-y divide-gray-800">
                         {table.sampleData.map((row, i) => (
                           <tr key={i} className="hover:bg-gray-800/50">
-                            {table.columns.map(col => (
-                              <td key={col.name} className="px-3 py-2 text-gray-300 font-mono">{formatValue(row[col.name])}</td>
-                            ))}
+                            {table.columns.map(col => {
+                              const val = row[col.name] !== undefined 
+                                ? row[col.name] 
+                                : row[col.name.toLowerCase()] !== undefined 
+                                  ? row[col.name.toLowerCase()] 
+                                  : row[col.name.toUpperCase()];
+                              return (
+                                <td key={col.name} className="px-3 py-2 text-gray-300 font-mono">
+                                  {formatValue(val)}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>

@@ -17,6 +17,7 @@ export interface QuestionData {
   id: string;
   setupSql: string;
   solutionSql: string;
+  schema: string;
 }
 
 export function usePGlite(question: QuestionData) {
@@ -61,17 +62,31 @@ export function usePGlite(question: QuestionData) {
         ORDER BY table_name, ordinal_position;
       `);
 
+      const casing = parseOriginalCasing(q.schema);
       const tablesMap = new Map<string, TableInfo>();
       const autocomplete: Record<string, string[]> = {};
 
       for (const row of schemaRes.rows as any[]) {
-        const tName = row.table_name;
-        if (!tablesMap.has(tName)) {
-          tablesMap.set(tName, { name: tName, columns: [], sampleData: [] });
-          autocomplete[tName] = [];
+        const tNameLower = row.table_name.toLowerCase();
+        const tNameOriginal = casing.tables[tNameLower] || row.table_name;
+        
+        const colNameLower = row.column_name.toLowerCase();
+        const colName = casing.columns[colNameLower] || row.column_name;
+
+        if (!tablesMap.has(tNameOriginal)) {
+          tablesMap.set(tNameOriginal, { name: tNameOriginal, columns: [], sampleData: [] });
         }
-        tablesMap.get(tName)!.columns.push({ name: row.column_name, type: row.data_type });
-        autocomplete[tName].push(row.column_name);
+        tablesMap.get(tNameOriginal)!.columns.push({ name: colName, type: row.data_type });
+
+        const tKeys = new Set([tNameLower, tNameOriginal, tNameOriginal.toUpperCase()]);
+        for (const key of tKeys) {
+          if (!autocomplete[key]) {
+            autocomplete[key] = [];
+          }
+          if (!autocomplete[key].includes(colName)) {
+            autocomplete[key].push(colName);
+          }
+        }
       }
 
       const tablesInfoArr = Array.from(tablesMap.values());
@@ -215,4 +230,34 @@ function compareValues(valA: any, valB: any): boolean {
   }
 
   return String(valA).trim() === String(valB).trim();
+}
+
+function parseOriginalCasing(schemaStr: string): { tables: Record<string, string>, columns: Record<string, string> } {
+  const tables: Record<string, string> = {};
+  const columns: Record<string, string> = {};
+  
+  // Match patterns like "TABLE TableName (..."
+  const tableRegex = /TABLE\s+(\w+)/gi;
+  let match;
+  while ((match = tableRegex.exec(schemaStr)) !== null) {
+    const originalName = match[1];
+    tables[originalName.toLowerCase()] = originalName;
+  }
+  
+  // Match words and filter out SQL keywords to get columns
+  const words = schemaStr.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+  words.forEach(word => {
+    const upper = word.toUpperCase();
+    if (upper === 'TABLE' || upper === 'INTEGER' || upper === 'INT' || upper === 'VARCHAR' || 
+        upper === 'DECIMAL' || upper === 'DATE' || upper === 'TIMESTAMP' || upper === 'PRIMARY' || 
+        upper === 'KEY' || upper === 'PK' || upper === 'BOOLEAN' || upper === 'DOUBLE' || upper === 'PRECISION') {
+      return;
+    }
+    // Only register if it's not a table name
+    if (!tables[word.toLowerCase()]) {
+      columns[word.toLowerCase()] = word;
+    }
+  });
+  
+  return { tables, columns };
 }

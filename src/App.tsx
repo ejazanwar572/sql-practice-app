@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Clock, Play, Pause, RotateCcw, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { questions } from './data/questions';
+import type { Topic } from './data/questions';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SqlEditor } from './components/Editor/SqlEditor';
 import { QuestionPanel } from './components/Panel/QuestionPanel';
@@ -12,6 +13,8 @@ function App() {
   const [currentQuestionId, setCurrentQuestionId] = useState(questions[0].id);
   const [difficultyFilter, setDifficultyFilter] = useState<'ALL' | 'Easy' | 'Medium' | 'Hard'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNSOLVED' | 'SOLVED'>('ALL');
+  const [topicFilter, setTopicFilter] = useState<'ALL' | Topic>('ALL');
+  const [companyFilter, setCompanyFilter] = useState<'ALL' | string>('ALL');
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   
   const [query, setQuery] = useState('');
@@ -27,6 +30,7 @@ function App() {
     markAsSolved,
     saveAttempt,
     clearAttemptsForQuestion,
+    resetAllProgress,
   } = useLocalStorage();
 
   const question = questions.find(q => q.id === currentQuestionId) || questions[0];
@@ -103,6 +107,11 @@ function App() {
         setDifficultyFilter={setDifficultyFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
+        topicFilter={topicFilter}
+        setTopicFilter={setTopicFilter}
+        companyFilter={companyFilter}
+        setCompanyFilter={setCompanyFilter}
+        onResetProgress={resetAllProgress}
       />
 
       {/* Main Workspace */}

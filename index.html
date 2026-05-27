@@ -3,7 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SQL Practice App</title>
+    <title>SQL Practice App — Interactive Interview Prep with 67+ Questions</title>
+    <meta name="description" content="Practice SQL online with 67 handpicked interview questions from Amazon, Google, Meta, Uber, and more. Client-side Postgres engine, instant execution, no signup required." />
+    <meta name="author" content="Ejaz Anwar" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SQL Practice App — Interactive Interview Prep" />
+    <meta property="og:description" content="67+ SQL interview questions from top tech companies. In-browser Postgres engine, instant execution, progress tracking. Free, no signup." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ejazanwar572.github.io/sql-practice-app/" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="SQL Practice App — Interactive Interview Prep" />
+    <meta name="twitter:description" content="67+ SQL interview questions. In-browser Postgres, instant execution, progress tracking. Free." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/sql-practice-app/manifest.json" crossorigin="use-credentials" />
+    <meta name="theme-color" content="#030712" />
+    <link rel="icon" type="image/svg+xml" href="/sql-practice-app/favicon.svg" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SQL Practice App",
+      "url": "https://ejazanwar572.github.io/sql-practice-app/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Any (browser-based)",
+      "description": "Interactive SQL practice platform with 67+ interview questions from top tech companies. Client-side Postgres engine via PGlite WebAssembly.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "67+ SQL interview questions from Amazon, Google, Meta, Uber, Stripe, LinkedIn",
+        "Client-side Postgres engine (PGlite/WebAssembly)",
+        "9 topic categories: Window Functions, Joins, Aggregation, CTEs, and more",
+        "Progress tracking with localStorage",
+        "Timer and attempt history per question"
+      ]
+    }
+    </script>
   </head>
   <body class="bg-gray-950 text-white min-h-screen">
     <div id="root"></div>

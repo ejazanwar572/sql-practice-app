@@ -5,6 +5,9 @@ import { PGlite } from '@electric-sql/pglite';
 export interface ColumnInfo {
   name: string;
   type: string;
+  isPK?: boolean;
+  isFK?: boolean;
+  fkRef?: string;
 }
 
 export interface TableInfo {
@@ -108,9 +111,11 @@ export function usePGlite(question: QuestionData) {
         console.error("Error executing solutionSql", solErr);
       }
 
+      const enhancedTablesInfo = enhanceTablesInfo(tablesInfoArr, q.schema);
+
       // Verify that this init call matches the current active question
       if (questionIdRef.current === q.id) {
-        setTablesInfo(tablesInfoArr);
+        setTablesInfo(enhancedTablesInfo);
         setSchemaForAutocomplete(autocomplete);
         setExpectedOutput(expOut);
         setIsLoading(false);
@@ -260,4 +265,125 @@ function parseOriginalCasing(schemaStr: string): { tables: Record<string, string
   });
   
   return { tables, columns };
+}
+
+function enhanceTablesInfo(tables: TableInfo[], schemaStr: string): TableInfo[] {
+  const pkMap: Record<string, Set<string>> = {};
+  
+  const tableMatches = schemaStr.match(/TABLE\s+(\w+)\s*\(([^)]+)\)/gi) || [];
+  tableMatches.forEach(tMatch => {
+    const parts = tMatch.match(/TABLE\s+(\w+)\s*\(([^)]+)\)/i);
+    if (parts) {
+      const tableName = parts[1].toLowerCase();
+      const colsPart = parts[2];
+      pkMap[tableName] = new Set<string>();
+      
+      const colDefs = colsPart.split(',');
+      colDefs.forEach(def => {
+        const words = def.trim().split(/\s+/);
+        if (words.length > 0) {
+          const colName = words[0].replace(/["`]/g, '').toLowerCase();
+          const defUpper = def.toUpperCase();
+          if (defUpper.includes(' PK') || defUpper.includes('PRIMARY KEY')) {
+            pkMap[tableName].add(colName);
+          }
+        }
+      });
+    }
+  });
+
+  const matchTable = (word: string, tableName: string): boolean => {
+    const w = word.toLowerCase();
+    const t = tableName.toLowerCase();
+    if (w === t) return true;
+    if (w + 's' === t) return true;
+    if (w === t + 's') return true;
+    if (w.endsWith('y') && w.slice(0, -1) + 'ies' === t) return true;
+    if (t.endsWith('y') && t.slice(0, -1) + 'ies' === w) return true;
+    return false;
+  };
+
+  const firstPass = tables.map(table => {
+    const tNameLower = table.name.toLowerCase();
+    const tPks = pkMap[tNameLower] || new Set<string>();
+    
+    const enhancedCols = table.columns.map(col => {
+      const cNameLower = col.name.toLowerCase();
+      let isPK = tPks.has(cNameLower);
+      
+      if (col.type.toUpperCase().includes('PRIMARY KEY')) {
+        isPK = true;
+      }
+      
+      const isIdCol = cNameLower === 'id' || 
+                      cNameLower === `${tNameLower}_id` || 
+                      cNameLower === `${tNameLower.replace(/s$/, '')}_id`;
+                      
+      return {
+        ...col,
+        isPK,
+        isIdCol,
+        isFK: false,
+        fkRef: undefined as string | undefined
+      };
+    });
+
+    const hasPK = enhancedCols.some(c => c.isPK);
+    if (!hasPK) {
+      const idCols = enhancedCols.filter(c => c.isIdCol);
+      if (idCols.length === 1) {
+        idCols[0].isPK = true;
+      }
+    }
+
+    return {
+      ...table,
+      columns: enhancedCols
+    };
+  });
+
+  return firstPass.map((table, _, allTables) => {
+    const enhancedCols = table.columns.map(col => {
+      if (col.isPK) return col;
+
+      const cNameLower = col.name.toLowerCase();
+      
+      if (cNameLower.endsWith('_id') && cNameLower !== 'id') {
+        const base = cNameLower.slice(0, -3);
+        
+        let isFK = false;
+        let fkRef: string | undefined = undefined;
+
+        if (base === 'manager' || base === 'parent') {
+          const selfPk = table.columns.find(c => c.isPK);
+          if (selfPk) {
+            isFK = true;
+            fkRef = `${table.name}.${selfPk.name}`;
+          }
+        } else {
+          const targetTable = allTables.find(t => matchTable(base, t.name));
+          if (targetTable) {
+            const targetPk = targetTable.columns.find(c => c.isPK) || targetTable.columns[0];
+            if (targetPk) {
+              isFK = true;
+              fkRef = `${targetTable.name}.${targetPk.name}`;
+            }
+          }
+        }
+
+        return {
+          ...col,
+          isFK,
+          fkRef
+        };
+      }
+
+      return col;
+    });
+
+    return {
+      ...table,
+      columns: enhancedCols
+    };
+  });
 }

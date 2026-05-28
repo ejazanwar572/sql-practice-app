@@ -97,7 +97,7 @@ function App() {
   // Reset timer on question change
   useEffect(() => {
     setTimerSeconds(0);
-    setIsTimerRunning(true);
+    setIsTimerRunning(false);
     setHintsRevealed(0);
     setQuery('');
   }, [currentQuestionId]);

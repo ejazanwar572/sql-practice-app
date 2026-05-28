@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Clock, Play, Pause, RotateCcw, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { questions } from './data/questions';
-import type { Topic } from './data/questions';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SqlEditor } from './components/Editor/SqlEditor';
 import { QuestionPanel } from './components/Panel/QuestionPanel';
@@ -13,7 +12,6 @@ function App() {
   const [currentQuestionId, setCurrentQuestionId] = useState(questions[0].id);
   const [difficultyFilter, setDifficultyFilter] = useState<'ALL' | 'Easy' | 'Medium' | 'Hard'>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNSOLVED' | 'SOLVED'>('ALL');
-  const [topicFilter, setTopicFilter] = useState<'ALL' | Topic>('ALL');
   const [companyFilter, setCompanyFilter] = useState<'ALL' | string>('ALL');
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   
@@ -54,7 +52,7 @@ function App() {
     let interval: any = null;
     if (isTimerRunning) {
       interval = setInterval(() => {
-        setTimerSeconds(prev => prev + 1);
+        setTimerSeconds(s => s + 1);
       }, 1000);
     } else {
       clearInterval(interval);
@@ -62,21 +60,21 @@ function App() {
     return () => clearInterval(interval);
   }, [isTimerRunning]);
 
-  // Reset state on question change
+  // Reset timer on question change
   useEffect(() => {
-    setQuery('');
-    setHintsRevealed(0);
     setTimerSeconds(0);
-    setIsTimerRunning(false);
-    setActiveTab('results');
-  }, [question.id]);
+    setIsTimerRunning(true);
+    setHintsRevealed(0);
+    setQuery('');
+  }, [currentQuestionId]);
 
   const handleRunQuery = async () => {
-    const res = await runQuery(query);
-    if (res.isCorrect) {
-      setIsTimerRunning(false);
+    if (!query.trim()) return;
+    const { isCorrect: passed } = await runQuery(query);
+    saveAttempt(question.id, query, timerSeconds);
+    if (passed) {
       markAsSolved(question.id);
-      saveAttempt(question.id, query, timerSeconds);
+      setIsTimerRunning(false);
     }
   };
 
@@ -107,8 +105,6 @@ function App() {
         setDifficultyFilter={setDifficultyFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        topicFilter={topicFilter}
-        setTopicFilter={setTopicFilter}
         companyFilter={companyFilter}
         setCompanyFilter={setCompanyFilter}
         onResetProgress={resetAllProgress}

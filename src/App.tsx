@@ -14,6 +14,40 @@ function App() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'UNSOLVED' | 'SOLVED'>('ALL');
   const [companyFilter, setCompanyFilter] = useState<'ALL' | string>('ALL');
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [leftWidth, setLeftWidth] = useState(41.67);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const container = document.getElementById('workspace-container');
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const relativeX = moveEvent.clientX - rect.left;
+        const newWidthPct = (relativeX / rect.width) * 100;
+        
+        if (newWidthPct >= 20 && newWidthPct <= 75) {
+          setLeftWidth(newWidthPct);
+        }
+      }
+    };
+    
+    const onMouseUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
   
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'results' | 'expected'>('results');
@@ -117,7 +151,10 @@ function App() {
           <>
             {/* Split Headers for Desktop */}
             <div className="h-16 hidden lg:flex shrink-0 z-10">
-              <div className="w-[41.67%] border-b border-r border-gray-800 bg-gray-900/60 flex items-center justify-between px-6 backdrop-blur-md shrink-0">
+              <div 
+                className="border-b border-r border-gray-800 bg-gray-900/60 flex items-center justify-between px-6 backdrop-blur-md shrink-0"
+                style={{ width: `${leftWidth}%` }}
+              >
                 <div className="flex items-center space-x-3 text-sm">
                   <button
                     onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
@@ -303,7 +340,11 @@ function App() {
           </div>
         )}
 
-        <div key={currentQuestionId} className="flex-1 overflow-hidden flex flex-col lg:flex-row animate-fade-in">
+        <div 
+          id="workspace-container"
+          key={currentQuestionId} 
+          className="flex-1 overflow-hidden flex flex-col lg:flex-row animate-fade-in"
+        >
           {dbError ? (
             <div className="flex-1 p-6 overflow-y-auto">
               <div className="glass rounded-xl p-6 border border-red-500/20 bg-red-500/5 text-red-400 font-mono text-sm max-w-[1400px] mx-auto w-full">
@@ -315,7 +356,10 @@ function App() {
             <>
               {/* Left Column: Context & Schema Stacked */}
               {!isLeftPanelCollapsed && (
-                <div className="w-full lg:w-[41.67%] border-b lg:border-b-0 lg:border-r border-gray-800 bg-gray-950/10 flex flex-col shrink-0 max-h-[50vh] lg:max-h-none lg:h-full">
+                <div 
+                  className="w-full lg:h-full bg-gray-950/10 flex flex-col shrink-0 max-h-[50vh] lg:max-h-none"
+                  style={{ width: `${leftWidth}%` }}
+                >
                   <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-6">
                     <QuestionPanel
                       question={question}
@@ -326,6 +370,22 @@ function App() {
                       setHintsRevealed={setHintsRevealed}
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Resizable Divider (visible on lg screens) */}
+              {!isLeftPanelCollapsed && (
+                <div
+                  onMouseDown={handleMouseDown}
+                  className={`hidden lg:block w-[6px] -mx-[3px] h-full cursor-col-resize z-30 group relative shrink-0 transition-colors ${
+                    isResizing ? 'bg-blue-600/40' : 'hover:bg-blue-500/20'
+                  }`}
+                  title="Drag to resize panels"
+                >
+                  {/* Visual central border line */}
+                  <div className={`absolute left-[2.5px] top-0 w-[1px] h-full transition-colors ${
+                    isResizing ? 'bg-blue-500' : 'bg-gray-800 group-hover:bg-blue-400'
+                  }`} />
                 </div>
               )}
 
